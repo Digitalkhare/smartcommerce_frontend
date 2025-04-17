@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./auth/AuthContext";
+//import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
 import Home from "./pages/Home";
@@ -15,82 +15,86 @@ import OrderSuccess from "./pages/OrderSuccess";
 import Account from "./pages/Account";
 import ProductDetail from "./pages/ProductDetail";
 import Navigationbar from "./components/Navigationbar";
-import { CartProvider } from "./cart/CartContext";
+//import { CartProvider } from "./cart/CartContext";
+import Chatbot from "./components/Chatbot";
+import { useAuth } from "./auth/AuthContext";
 
 function App() {
+  const { user } = useAuth();
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <AppNavigator />
-          <Navigationbar />
-          {/* ← inject navigate function */}
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/products" element={<Products />} />
+    //<AuthProvider> both moved to index.js
+    // <CartProvider>
+    <Router>
+      <AppNavigator />
+      <Navigationbar />
+      {/* ← inject navigate function */}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/products" element={<Products />} />
 
-            <Route
-              path="/cart"
-              element={
-                <ProtectedRoute>
-                  <Cart />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <ProtectedRoute>
-                  <Orders />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute role="ADMIN">
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/order-success"
-              element={
-                <ProtectedRoute>
-                  <OrderSuccess />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account"
-              element={
-                <ProtectedRoute>
-                  <Account />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/products/:id"
-              element={
-                <ProtectedRoute>
-                  <ProductDetail />{" "}
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute role="ADMIN">
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="ADMIN">
+              <Admin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-success"
+          element={
+            <ProtectedRoute>
+              <OrderSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/products/:id"
+          element={
+            <ProtectedRoute>
+              <ProductDetail />{" "}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="ADMIN">
+              <Admin />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+      {user && <Chatbot />}
+    </Router>
+    //  </CartProvider>
+    //   </AuthProvider>
   );
 }
 

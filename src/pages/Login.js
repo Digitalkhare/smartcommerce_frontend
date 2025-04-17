@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import axios from "../api/axios";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useCart } from "../cart/CartContext";
 
 const Login = () => {
+  const { refreshCart } = useCart();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +29,7 @@ const Login = () => {
       console.error(err);
       setError("Login failed. Check email and password.");
     }
+    refreshCart();
   };
 
   return (

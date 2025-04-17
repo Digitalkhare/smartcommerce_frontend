@@ -5,9 +5,15 @@ import { useCart } from "../cart/CartContext";
 
 const Navigationbar = () => {
   const { user, logout } = useAuth();
-  const { cart } = useCart();
+  const { cart, refreshCart } = useCart();
+
   const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
   console.log("Logged-in user:", user);
+
+  const handleLogout = () => {
+    logout(); // Clear token and user
+    refreshCart(); // Re-fetch cart - should return empty if unauthenticated
+  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4 sticky-top">
@@ -75,7 +81,7 @@ const Navigationbar = () => {
             <li className="nav-item">
               <button
                 className="btn btn-sm btn-outline-light ms-2"
-                onClick={logout}
+                onClick={handleLogout}
               >
                 Logout
               </button>
