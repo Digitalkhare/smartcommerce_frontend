@@ -4,12 +4,15 @@ import App from "./App";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { AuthProvider } from "./auth/AuthContext";
 import { CartProvider } from "./cart/CartContext";
+import { TtsProvider } from "./context/TtsContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <AuthProvider>
-    <CartProvider>
-      <App />
-    </CartProvider>
-  </AuthProvider>
+  <TtsProvider>
+    <AuthProvider>
+      <CartProvider>
+        <App />
+      </CartProvider>
+    </AuthProvider>
+  </TtsProvider>
 );

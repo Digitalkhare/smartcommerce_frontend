@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "../api/axios";
 import dayjs from "dayjs";
 import { Modal, Button } from "react-bootstrap";
+import TtsToggle from "../components/TtsToggle";
 
 const Admin = () => {
   const [tab, setTab] = useState("products");
@@ -54,7 +55,7 @@ const Admin = () => {
   });
 
   const fetchProducts = async () => {
-    const res = await axios.get("/products");
+    const res = await axios.get("/products/admin");
     setProducts(res.data);
   };
 
@@ -68,9 +69,17 @@ const Admin = () => {
     fetchOrders();
   }, []);
 
+  const prepareProductForSubmit = (product) => {
+    return {
+      ...product,
+      category: { id: product.categoryId }, // 👈 Wrap categoryId into an object
+    };
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
-    await axios.post("/products/admin", newProduct); // Admin-only endpoint
+    const productToSubmit = prepareProductForSubmit(newProduct);
+    await axios.post("/products/admin", productToSubmit); // Admin-only endpoint
     setNewProduct({
       name: "",
       description: "",
@@ -85,7 +94,7 @@ const Admin = () => {
   return (
     <div className="container mt-4">
       <h2>🧑‍💼 Admin Panel</h2>
-
+      <TtsToggle />
       <div className="btn-group my-3">
         <button
           className={`btn ${

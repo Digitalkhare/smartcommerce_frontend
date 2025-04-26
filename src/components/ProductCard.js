@@ -2,17 +2,17 @@ import React from "react";
 import axios from "../api/axios";
 import { escapeAmpInTextParam } from "../util/escapeAmpInTextParam";
 import { Link } from "react-router-dom";
-//import { useCart } from "../cart/CartContext";
+import { useCart } from "../cart/CartContext";
 
 const ProductCard = ({ product }) => {
-  // const { refreshCart } = useCart();
+  const { refreshCart } = useCart();
 
   const handleAddToCart = async () => {
     await axios.post("/cart/add", null, {
       params: { productId: product.id, quantity: 1 },
     });
     alert("Added to cart!");
-    //refreshCart();
+    refreshCart();
   };
 
   return (

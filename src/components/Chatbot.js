@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
-//import axios from "axios";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "../api/axios";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
-import "./Chatbot.css"; // optional for animations
+import "./Chatbot.css";
 import { useAuth } from "../auth/AuthContext";
+import { useTts } from "../context/TtsContext";
 
 const Chatbot = () => {
-  const { user } = useAuth(); // or props.user or global store
+  const { user } = useAuth();
+  const { ttsMode } = useTts();
+  const audioRef = useRef(null);
+
   const [userProfile, setUserProfile] = useState(null);
   const [input, setInput] = useState("");
   const [open, setOpen] = useState(false);
@@ -24,148 +27,79 @@ const Chatbot = () => {
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
 
-  const [messages, setMessages] = useState([
-    // {
-    //   sender: "bot",
-    //   text: "Hello! I’m your smart shopping assistant. How can I help today?",
-    // },
-  ]);
-  //   useEffect(() => {
-  //     if (open && user) {
-  //       axios
-  //         .get("/auth/me")
-  //         .then((res) => setUserProfile(res.data))
-  //         .catch((err) => {
-  //           console.error("Failed to load user profile", err);
-  //         });
-  //     }
-  //   }, [open, user]);
+  const [messages, setMessages] = useState([]);
+
   useEffect(() => {
     if (open && user && !hasGreeted) {
       axios
         .get("/auth/me")
         .then((res) => {
           setUserProfile(res.data);
-
           const fullName = [res.data.firstName, res.data.lastName]
             .filter(Boolean)
             .join(" ");
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              sender: "bot",
-              text: `Hello ${fullName}! I’m Jessica, your smart shopping assistant. How can I help today?`,
-            },
-          ]);
-
+          const greeting = `Hello ${fullName}! I’m Jessica, your smart shopping assistant. How can I help today?`;
+          setMessages((prev) => [...prev, { sender: "bot", text: greeting }]);
+          speak(greeting);
           setHasGreeted(true);
         })
-        .catch((err) => {
-          console.error("Failed to load user profile", err);
-
-          // Fallback greeting
-          setMessages((prev) => [
-            ...prev,
-            {
-              sender: "bot",
-              text: "Hello! I’m your smart shopping assistant. How can I help today?",
-            },
-          ]);
-
+        .catch(() => {
+          const fallback =
+            "Hello! I’m your smart shopping assistant. How can I help today?";
+          setMessages((prev) => [...prev, { sender: "bot", text: fallback }]);
+          speak(fallback);
           setHasGreeted(true);
         });
     }
   }, [open, user, hasGreeted]);
 
   useEffect(() => {
-    // When a new user logs in, clear previous state
     if (user) {
       setMessages([]);
       setHasGreeted(false);
       setUserProfile(null);
     }
-  }, [user?.sub, user]); // Depend on user's unique ID or email
+  }, [user?.sub, user]);
+  const speak = useCallback(
+    (text) => {
+      if (ttsMode === "elevenlabs") {
+        speakWithElevenLabs(text);
+      } else {
+        speakWithNativeVoice(text);
+      }
+    },
+    [ttsMode]
+  );
 
-  //   useEffect(() => {
-  //     if (!hasGreeted && open) {
-  //       if (userProfile) {
-  //         setMessages((prev) => [
-  //           ...prev,
-  //           {
-  //             sender: "bot",
-  //             text: `Hello ${[userProfile.firstName, userProfile.lastName]
-  //               .filter(Boolean)
-  //               .join(
-  //                 " "
-  //               )}! I’m your smart shopping assistant. How can I help today?`,
-  //           },
-  //         ]);
-  //       } else if (!user) {
-  //         setMessages((prev) => [
-  //           ...prev,
-  //           {
-  //             sender: "bot",
-  //             text: "Hello! I’m your smart shopping assistant. How can I help today?",
-  //           },
-  //         ]);
-  //       }
-  //       setHasGreeted(true);
-  //     }
-  //   }, [user, userProfile, open, hasGreeted]);
-
-  //   const handleSend = useCallback(
-  //     async (message = input) => {
-  //       if (!message.trim()) return;
-
-  //       setMessages((prev) => [...prev, { sender: "user", text: message }]);
-  //       setInput("");
-  //       try {
-  //         const chatRes = await axios.post("/chat", { message });
-  //         const reply = chatRes.data.reply;
-  //         setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
-  //         speak(reply);
-  //       } catch (err) {
-  //         console.error(err);
-  //       }
-  //     },
-  //     [input]
-  //   );
   const handleSend = useCallback(
     async (message = input) => {
       if (!message.trim()) return;
 
       setMessages((prev) => [...prev, { sender: "user", text: message }]);
       setInput("");
-      setIsBotTyping(true); // Show typing indicator
+      setIsBotTyping(true);
 
       try {
         const chatRes = await axios.post("/chat", { message });
         const reply = chatRes.data.reply;
-
-        // 👇 Dynamic delay based on message length (capped to 5s)
-        const delay = Math.min(reply.length * 30, 5000);
-
-        setTimeout(() => {
-          setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
-          setIsBotTyping(false);
-          speak(reply);
-        }, delay);
-      } catch (err) {
+        setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
         setIsBotTyping(false);
+        speak(reply);
+      } catch (err) {
         console.error(err);
+        setIsBotTyping(false);
       }
     },
-    [input]
+    [input, speak]
   );
 
   useEffect(() => {
     if (typeof navigator !== "undefined") {
       const isFF = navigator.userAgent.toLowerCase().includes("firefox");
-      console.log("isFirefox:", isFF);
-      setIsFirefox(navigator.userAgent.toLowerCase().includes("firefox"));
+      setIsFirefox(isFF);
     }
   }, []);
+
   useEffect(() => {
     if (transcript && !listening) {
       handleSend(transcript);
@@ -173,31 +107,113 @@ const Chatbot = () => {
     }
   }, [listening, transcript, handleSend, resetTranscript]);
 
-  useEffect(() => {
-    if (isFirefox && open) {
-      console.log("✅ Rendering Firefox warning!");
-    }
-  }, [isFirefox, open]);
+  const loadVoices = () => {
+    return new Promise((resolve) => {
+      const voices = speechSynthesis.getVoices();
+      if (voices.length > 0) return resolve(voices);
 
-  const speak = (text) => {
-    setIsSpeaking(true);
-    axios
-      .post("/tts", { text }, { responseType: "arraybuffer" })
-      .then((res) => {
-        const blob = new Blob([res.data], { type: "audio/mpeg" });
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.onended = () => setIsSpeaking(false);
-        audio.play();
-      })
-      .catch(() => {
-        setIsSpeaking(false);
-      });
+      const onVoicesChanged = () => {
+        const loadedVoices = speechSynthesis.getVoices();
+        speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+        resolve(loadedVoices);
+      };
+
+      speechSynthesis.addEventListener("voiceschanged", onVoicesChanged);
+    });
   };
 
+  const speakWithNativeVoice = async (text) => {
+    setIsSpeaking(true);
+    speechSynthesis.cancel();
+
+    const voices = await loadVoices();
+    const preferredVoice = voices.find((v) => v.name.includes("Hazel"));
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    utterance.onend = () => {
+      console.log("✅ Native TTS ended");
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (e) => {
+      console.error("❌ Native TTS error", e);
+      setIsSpeaking(false);
+    };
+
+    speechSynthesis.speak(utterance);
+  };
+
+  const speakWithElevenLabs = async (text) => {
+    setIsSpeaking(true);
+
+    try {
+      const res = await axios.post(
+        "/tts",
+        { text },
+        { responseType: "arraybuffer" }
+      );
+      const blob = new Blob([res.data], { type: "audio/mpeg" });
+      const blobUrl = URL.createObjectURL(blob);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+
+      const audio = new Audio(blobUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(blobUrl);
+      };
+
+      audio.onerror = (e) => {
+        console.error("❌ Audio error", e);
+        setIsSpeaking(false);
+        URL.revokeObjectURL(blobUrl);
+      };
+
+      audio.play().catch((err) => {
+        console.error("🎧 Playback error:", err);
+        setIsSpeaking(false);
+      });
+    } catch (err) {
+      console.error("TTS failed", err);
+      setIsSpeaking(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      URL.revokeObjectURL(audioRef.current.src);
+      audioRef.current = null;
+    }
+  }, [ttsMode]);
+
   const handleMic = () => {
-    if (listening) SpeechRecognition.stopListening();
-    else SpeechRecognition.startListening({ continuous: false });
+    if (listening) {
+      SpeechRecognition.stopListening();
+    } else {
+      SpeechRecognition.startListening({ continuous: false });
+    }
   };
 
   const showMic = browserSupportsSpeechRecognition && !isFirefox;
@@ -249,6 +265,7 @@ const Chatbot = () => {
               </button>
             )}
           </div>
+
           {isBotTyping && (
             <div className="chat-msg bot typing-indicator">
               <strong>Bot typing:</strong>
