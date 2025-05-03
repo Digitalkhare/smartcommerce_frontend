@@ -10,6 +10,7 @@ const OrderSuccess = () => {
     try {
       const res = await axios.get("/orders/latest");
       setOrder(res.data);
+      console.log(res.data);
     } catch (err) {
       console.error("Could not fetch latest order", err);
     } finally {
@@ -26,7 +27,10 @@ const OrderSuccess = () => {
 
   return (
     <div className="container mt-5 text-center">
-      <h2>🎉 Thank you for your order!</h2>
+      <h2>
+        🎉 Thank you for your order
+        {order.userFirstName ? `, ${order.userFirstName}` : ""}!
+      </h2>
       <p>Order #{order.id} has been placed successfully.</p>
 
       <h4 className="mt-4">Order Summary</h4>

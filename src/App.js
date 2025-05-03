@@ -18,6 +18,7 @@ import Navigationbar from "./components/Navigationbar";
 //import { CartProvider } from "./cart/CartContext";
 import Chatbot from "./components/Chatbot";
 import { useAuth } from "./auth/AuthContext";
+import CheckoutPage from "./pages/CheckoutPage";
 
 function App() {
   const { user } = useAuth();
@@ -33,7 +34,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/products" element={<Products />} />
-
         <Route
           path="/cart"
           element={
@@ -56,6 +56,14 @@ function App() {
             <ProtectedRoute role="ADMIN">
               <Admin />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            // <ProtectedRoute>
+            <CheckoutPage />
+            // </ProtectedRoute>
           }
         />
         <Route

@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "../api/axios";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 const TtsContext = createContext();
 
@@ -8,27 +10,48 @@ export const useTts = () => useContext(TtsContext);
 export const TtsProvider = ({ children }) => {
   const [ttsMode, setTtsMode] = useState("native");
 
+  // Fetch initial TTS mode
   useEffect(() => {
-    const fetchMode = () => {
-      axios
-        .get("/settings/tts-mode")
-        .then((res) => {
-          if (res.data.ttsMode && res.data.ttsMode !== ttsMode) {
-            setTtsMode(res.data.ttsMode);
-            console.log("🔁 TTS mode refreshed:", res.data.ttsMode);
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to load TTS mode", err);
+    axios
+      .get("/settings/tts-mode")
+      .then((res) => {
+        setTtsMode(res.data.ttsMode || "native");
+      })
+      .catch((err) => {
+        console.error("Failed to fetch TTS mode", err);
+      });
+  }, []);
+
+  // Setup WebSocket for real-time updates
+  useEffect(() => {
+    const client = new Client({
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      reconnectDelay: 5000,
+      // reconnectDelay: 0,
+
+      onConnect: () => {
+        console.log("✅ Connected to WebSocket");
+        client.subscribe("/topic/tts-mode", (msg) => {
+          const updatedMode = msg.body;
+          console.log("🔁 TTS mode updated via WebSocket:", updatedMode);
+          setTtsMode(updatedMode);
         });
+      },
+
+      onStompError: (frame) => {
+        console.error("❌ STOMP error:", frame.headers["message"]);
+        console.error("Details:", frame.body);
+      },
+    });
+
+    client.activate();
+
+    return () => {
+      if (client.connected) {
+        client.deactivate();
+      }
     };
-
-    fetchMode(); // Initial fetch on mount
-
-    const interval = setInterval(fetchMode, 10000); // Refresh every 10 sec
-
-    return () => clearInterval(interval); // Clean up on unmount
-  }, [ttsMode]);
+  }, []);
 
   return (
     <TtsContext.Provider value={{ ttsMode, setTtsMode }}>

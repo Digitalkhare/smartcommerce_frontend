@@ -38,15 +38,20 @@ const Cart = () => {
     0
   );
 
-  const handleCheckout = async () => {
-    try {
-      await axios.post("/orders/place");
-      alert("✅ Order placed!");
-      navigate("/order-success");
-      refreshCart();
-    } catch (err) {
-      alert("Failed to place order.");
-    }
+  // const handleCheckout = async () => {
+  //   try {
+  //     await axios.post("/orders/place");
+  //     alert("✅ Order placed!");
+  //     navigate("/order-success");
+  //     refreshCart();
+  //   } catch (err) {
+  //     alert("Failed to place order.");
+  //   }
+  // };
+
+  const handleCheckout = () => {
+    const totalInPence = Math.round(total * 100); // Stripe expects pence
+    navigate("/checkout", { state: { amount: totalInPence } });
   };
 
   if (loading) return <div className="container mt-4">Loading cart...</div>;

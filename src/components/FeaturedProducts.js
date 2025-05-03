@@ -1,41 +1,50 @@
 import React, { useEffect, useState } from "react";
 import axios from "../api/axios";
 import ProductCard from "./ProductCard";
-//import { useNavigate } from "react-router-dom";
+import Slider from "react-slick";
 
 const FeaturedProducts = () => {
   const [featured, setFeatured] = useState([]);
-  //const navigate = useNavigate();
 
   useEffect(() => {
     axios.get("/products/featured").then((res) => setFeatured(res.data));
   }, []);
-  // useEffect(() => {
-  //   axios
-  //     .get("/products/featured")
-  //     .then((res) => setFeatured(res.data))
-  //     .catch((err) => {
-  //       console.error("🔴 AXIOS ERROR:", err.message);
-  //       console.error("🧨 AXIOS DETAILS:", err);
-  //       if (err.response?.status === 401) {
-  //         alert("Your session has expired. Please log in again.");
-  //         navigate("/login");
-  //       } else {
-  //         alert("Couldn't load featured products. See console for details.");
-  //       }
-  //     });
-  // }, [navigate]);
+
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 800,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    arrows: true,
+    responsive: [
+      {
+        breakpoint: 992, // Tablets
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 576, // Phones
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
 
   return (
-    <div className="container py-4">
+    <div className="container py-5">
       <h4 className="text-center mb-4">Featured Deals</h4>
-      <div className="row">
+      <Slider {...settings}>
         {featured.map((product) => (
-          <div key={product.id} className="col-md-4">
+          <div key={product.id} className="px-3">
             <ProductCard product={product} />
           </div>
         ))}
-      </div>
+      </Slider>
     </div>
   );
 };

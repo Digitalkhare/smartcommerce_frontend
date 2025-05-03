@@ -28,6 +28,7 @@ import { redirectToLogin } from "./navigation";
 
 const instance = axios.create({
   baseURL: "http://localhost:8080/api",
+  withCredentials: true,
 });
 
 instance.interceptors.request.use((config) => {

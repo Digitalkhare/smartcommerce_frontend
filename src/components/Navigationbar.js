@@ -64,7 +64,18 @@ const Navigationbar = () => {
             search: searchTerm,
           },
         });
-        setSuggestions(res.data.slice(0, 5));
+
+        // ✨ Deduplicate suggestions by name:
+        const uniqueByName = [];
+        const seenNames = new Set();
+
+        for (const product of res.data) {
+          if (!seenNames.has(product.name)) {
+            seenNames.add(product.name);
+            uniqueByName.push(product);
+          }
+        }
+        setSuggestions(uniqueByName.slice(0, 5));
       } catch (err) {
         console.error("Search suggestion failed", err);
         setSuggestions([]);

@@ -9,15 +9,6 @@ const categories = [
   "Sports",
 ];
 
-// const categories = [
-//   { label: "All", value: "All" },
-//   { label: "Electronics", value: "Electronics" },
-//   { label: "Fashion", value: "Fashion" },
-//   { label: "Books", value: "Books" },
-//   { label: "Home", value: "Home & Living" },
-//   { label: "Sports", value: "Sports" },
-// ];
-
 const CategoryFilter = ({ selected, onSelect }) => {
   return (
     <div className="d-flex flex-wrap gap-2 mb-3">
