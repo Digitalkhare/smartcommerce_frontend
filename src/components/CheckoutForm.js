@@ -36,10 +36,23 @@ const CheckoutForm = ({ amount }) => {
         console.error(result.error.message);
         setLoading(false);
       } else if (result.paymentIntent.status === "succeeded") {
-        await axios.post("/orders/place");
-        setSucceeded(true);
-        setLoading(false);
-        window.location.href = "/order-success";
+        try {
+          await axios.post(
+            "/orders/place",
+            { paymentIntentId: result.paymentIntent.id },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          setSucceeded(true);
+          setLoading(false);
+          window.location.href = "/order-success";
+        } catch (orderError) {
+          console.error("Order creation failed after payment", orderError);
+          setLoading(false);
+        }
       }
     } catch (err) {
       console.error("Payment or order placement failed", err);

@@ -1,15 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "../api/axios";
 import dayjs from "dayjs";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 const Account = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+  const stompClient = useRef(null);
 
+  // Fetch user's orders
   const fetchOrders = async () => {
     try {
       const res = await axios.get("/orders");
       setOrders(res.data);
+
+      // Set userId from response if available
+      if (res.data.length > 0 && res.data[0].userId) {
+        setUserId(res.data[0].userId);
+      }
     } catch (err) {
       console.error("Failed to load orders", err);
     } finally {
@@ -21,10 +31,44 @@ const Account = () => {
     fetchOrders();
   }, []);
 
+  // Connect WebSocket once userId is known
+  useEffect(() => {
+    if (!userId) return;
+
+    const socket = new SockJS("http://localhost:8080/ws");
+    const client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      debug: (msg) => console.log("STOMP DEBUG:", msg),
+
+      onConnect: () => {
+        const topic = `/topic/orders/${userId}`;
+        console.log("📡 Subscribed to:", topic);
+
+        client.subscribe(topic, (message) => {
+          const updatedOrder = JSON.parse(message.body);
+          setOrders((prev) =>
+            prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+          );
+        });
+      },
+
+      onStompError: (frame) => {
+        console.error("STOMP error:", frame);
+      },
+    });
+
+    stompClient.current = client;
+    client.activate();
+
+    return () => {
+      if (stompClient.current) stompClient.current.deactivate();
+    };
+  }, [userId]);
+
   return (
     <div className="container mt-5">
       <h3>👤 My Account</h3>
-
       <hr />
       <h4>Order History</h4>
 
