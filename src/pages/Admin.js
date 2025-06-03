@@ -8,13 +8,19 @@ import { InvisibleLastRow } from "../util/InvisibleLastRow";
 
 const Admin = () => {
   const [tab, setTab] = useState("products");
-
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
 
   const [editing, setEditing] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [sortField, setSortField] = useState("orderDateTime");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [expandedOrders, setExpandedOrders] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const fetchProducts = async () => {
     const res = await axios.get("/products/admin");
@@ -35,10 +41,20 @@ const Admin = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get("/categories"); // Adjust if your API route differs
+      setCategories(res.data);
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchOrders();
     fetchUsers();
+    fetchCategories();
   }, []);
 
   const openEditModal = (product) => {
@@ -53,7 +69,12 @@ const Admin = () => {
 
   const handleUpdateProduct = async () => {
     try {
-      await axios.put(`/products/admin/${editing.id}`, editing);
+      const payload = {
+        ...editing,
+        category: { id: editing.categoryId }, // 👈 Convert to expected format
+      };
+      delete payload.categoryId; // optional cleanup
+      await axios.put(`/products/admin/${editing.id}`, payload);
       closeModal();
       fetchProducts();
     } catch (err) {
@@ -110,6 +131,58 @@ const Admin = () => {
     }
   };
 
+  const showUser = (user) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
+
+  const editUser = (user) => {
+    alert(`Editing user: ${user.firstName} ${user.lastName}`);
+  };
+
+  const deleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      await axios.delete(`/admin/users/${userId}`);
+      fetchUsers();
+    } catch (err) {
+      console.error("Failed to delete user", err);
+    }
+  };
+
+  const toggleUserStatus = async (user) => {
+    const newStatus =
+      user.status.toLowerCase() === "active" ? "inactive" : "active";
+    try {
+      await axios.put(`/admin/users/${user.id}/status`, { status: newStatus });
+      fetchUsers();
+    } catch (err) {
+      console.error("Failed to update user status", err);
+    }
+  };
+
+  const closeUserModal = () => {
+    setSelectedUser(null);
+    setShowUserModal(false);
+  };
+
+  const toggleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedOrders = [...(selectedUser?.orders || [])].sort((a, b) => {
+    const aVal = a[sortField];
+    const bVal = b[sortField];
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
   return (
     <div className="container mt-4">
       <h2>🧑‍💼 Admin Panel</h2>
@@ -143,18 +216,39 @@ const Admin = () => {
               "categoryId",
             ].map((field, i) => (
               <div className="col-md-4" key={i}>
-                <input
-                  className="form-control"
-                  placeholder={field}
-                  type={
-                    field === "price" || field === "stock" ? "number" : "text"
-                  }
-                  value={newProduct[field]}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, [field]: e.target.value })
-                  }
-                  required
-                />
+                {field === "categoryId" ? (
+                  <select
+                    className="form-select"
+                    value={newProduct.categoryId}
+                    onChange={(e) =>
+                      setNewProduct({
+                        ...newProduct,
+                        categoryId: e.target.value,
+                      })
+                    }
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    className="form-control"
+                    placeholder={field}
+                    type={
+                      ["price", "stock"].includes(field) ? "number" : "text"
+                    }
+                    value={newProduct[field]}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, [field]: e.target.value })
+                    }
+                    required
+                  />
+                )}
               </div>
             ))}
             <div className="col-12">
@@ -176,7 +270,7 @@ const Admin = () => {
               {products.map((p) => (
                 <tr key={p.id}>
                   <td>{p.name}</td>
-                  <td>${p.price.toFixed(2)}</td>
+                  <td>£{p.price.toFixed(2)}</td>
                   <td>{p.stock}</td>
                   <td>{p.category?.name}</td>
                   <td>
@@ -209,7 +303,7 @@ const Admin = () => {
             <div className="card mb-3" key={order.id}>
               <div className="card-header d-flex justify-content-between align-items-center">
                 <div>
-                  <strong>Order #{order.id}</strong> -{" "}
+                  <strong>Order #{order.id}</strong> –{" "}
                   {dayjs(order.orderDateTime).format("MMM D, YYYY h:mm A")}
                 </div>
                 <div className="d-flex align-items-center">
@@ -245,12 +339,12 @@ const Admin = () => {
                     <span>
                       {item.product.name} x {item.quantity}
                     </span>
-                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                    <span>£{(item.price * item.quantity).toFixed(2)}</span>
                   </li>
                 ))}
               </ul>
               <div className="card-footer">
-                Total: ${order.totalAmount.toFixed(2)} | User:{" "}
+                Total: £{order.totalAmount.toFixed(2)} | User:{" "}
                 {order.user?.email}
               </div>
             </div>
@@ -262,11 +356,17 @@ const Admin = () => {
       {tab === "users" && (
         <>
           <h4>Manage Users</h4>
-          <UserManagement users={users} />
+          <UserManagement
+            users={users}
+            onShow={showUser}
+            onEdit={editUser}
+            onDelete={deleteUser}
+            onToggleStatus={toggleUserStatus}
+          />
         </>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Product Modal */}
       {editing && (
         <Modal show={showModal} onHide={closeModal}>
           <Modal.Header closeButton>
@@ -281,24 +381,185 @@ const Admin = () => {
               "imageUrl",
               "categoryId",
             ].map((field, i) => (
-              <input
-                key={i}
-                className="form-control mb-2"
-                placeholder={field}
-                type={["price", "stock"].includes(field) ? "number" : "text"}
-                value={editing[field]}
-                onChange={(e) =>
-                  setEditing({ ...editing, [field]: e.target.value })
-                }
-              />
+              <div key={i}>
+                {field === "categoryId" ? (
+                  <select
+                    className="form-select mb-2"
+                    value={editing.categoryId}
+                    onChange={(e) =>
+                      setEditing({ ...editing, categoryId: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    className="form-control mb-2"
+                    placeholder={field}
+                    type={
+                      ["price", "stock"].includes(field) ? "number" : "text"
+                    }
+                    value={editing[field]}
+                    onChange={(e) =>
+                      setEditing({ ...editing, [field]: e.target.value })
+                    }
+                    required
+                  />
+                )}
+              </div>
             ))}
           </Modal.Body>
+
           <Modal.Footer>
             <Button variant="secondary" onClick={closeModal}>
               Cancel
             </Button>
             <Button variant="primary" onClick={handleUpdateProduct}>
               Save
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+
+      {/* User Order History Modal */}
+      {selectedUser && (
+        <Modal show={showUserModal} onHide={closeUserModal} size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>
+              User Order History – {selectedUser.firstName}{" "}
+              {selectedUser.lastName}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {(selectedUser.orders || []).length === 0 ? (
+              <p>This user has no orders.</p>
+            ) : (
+              <table className="table table-sm">
+                <thead>
+                  <tr>
+                    {[
+                      { label: "Order #", key: "id" },
+                      { label: "Date", key: "orderDateTime" },
+                      { label: "Status", key: "status" },
+                      { label: "Total", key: "totalAmount" },
+                      { label: "", key: "actions" },
+                    ].map((col) => (
+                      <th key={col.key}>
+                        {col.key !== "actions" ? (
+                          <span
+                            onClick={() => toggleSort(col.key)}
+                            style={{
+                              cursor: "pointer",
+                              userSelect: "none",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            {col.label}
+                            {sortField === col.key && (
+                              <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedOrders.map((order) => {
+                    console.log("Order:", order);
+                    console.log("Items:", order.orderItems);
+
+                    return (
+                      <React.Fragment key={order.id}>
+                        <tr>
+                          <td>{order.id}</td>
+                          <td>
+                            {dayjs(order.orderDateTime).format(
+                              "MMM D, YYYY h:mm A"
+                            )}
+                          </td>
+                          <td>{order.status}</td>
+                          <td>£{order.totalAmount.toFixed(2)}</td>
+                          <td>
+                            <Button
+                              variant="outline-secondary"
+                              size="sm"
+                              onClick={() =>
+                                setExpandedOrders((prev) =>
+                                  prev.includes(order.id)
+                                    ? prev.filter((id) => id !== order.id)
+                                    : [...prev, order.id]
+                                )
+                              }
+                            >
+                              {expandedOrders.includes(order.id)
+                                ? "Hide Items"
+                                : "View Items"}
+                            </Button>
+                          </td>
+                        </tr>
+
+                        {expandedOrders.includes(order.id) && (
+                          <tr>
+                            <td colSpan={5}>
+                              {order.orderItems?.length > 0 ? (
+                                <table className="table table-bordered table-sm mb-0">
+                                  <thead>
+                                    <tr>
+                                      <th>Product</th>
+                                      <th>Quantity</th>
+                                      <th>Price</th>
+                                      <th>Subtotal</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {order.orderItems.map((item) => (
+                                      <tr key={item.id}>
+                                        <td>
+                                          {item.productName ||
+                                            item.product?.name ||
+                                            "N/A"}
+                                        </td>
+                                        <td>{item.quantity}</td>
+                                        <td>£{item.price.toFixed(2)}</td>
+                                        <td>
+                                          £
+                                          {(item.price * item.quantity).toFixed(
+                                            2
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              ) : (
+                                <div className="text-muted">
+                                  No items in this order.
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={closeUserModal}>
+              Close
             </Button>
           </Modal.Footer>
         </Modal>
