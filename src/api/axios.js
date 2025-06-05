@@ -27,7 +27,7 @@ import axios from "axios";
 import { redirectToLogin } from "./navigation";
 
 const instance = axios.create({
-  baseURL: "https://smartcommerce-backend-f3aa4e6e4d32.herokuapp.com",
+  baseURL: "https://smartcommerce-backend-f3aa4e6e4d32.herokuapp.com/api",
   withCredentials: true,
 });
 
