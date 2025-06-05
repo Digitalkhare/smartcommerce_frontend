@@ -11,7 +11,7 @@ const Products = () => {
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
 
   const [params] = useSearchParams();
-  //const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const category = params.get("category") || "All";
   const search = params.get("search") || "";
