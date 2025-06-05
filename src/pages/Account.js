@@ -35,7 +35,9 @@ const Account = () => {
   useEffect(() => {
     if (!userId) return;
 
-    const socket = new SockJS("http://localhost:8080/ws");
+    const socket = new SockJS(
+      "https://smartcommerce-backend-f3aa4e6e4d32.herokuapp.com/ws"
+    );
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
