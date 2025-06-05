@@ -25,7 +25,10 @@ export const TtsProvider = ({ children }) => {
   // Setup WebSocket for real-time updates
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      webSocketFactory: () =>
+        new SockJS(
+          "https://smartcommerce-backend-f3aa4e6e4d32.herokuapp.com/ws"
+        ),
       reconnectDelay: 5000,
       // reconnectDelay: 0,
 

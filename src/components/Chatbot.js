@@ -12,7 +12,7 @@ const Chatbot = () => {
   const { ttsMode } = useTts();
   const audioRef = useRef(null);
 
-  const [userProfile, setUserProfile] = useState(null);
+  const [, setUserProfile] = useState(null);
   const [input, setInput] = useState("");
   const [open, setOpen] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
