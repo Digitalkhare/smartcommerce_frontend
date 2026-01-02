@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { useCart } from "../cart/CartContext";
 import axios from "../api/axios";
 
 const Navigationbar = () => {
+  const location = useLocation();
+
   const { user, logout } = useAuth();
   const { cart, refreshCart } = useCart();
   const navigate = useNavigate();
@@ -89,6 +91,20 @@ const Navigationbar = () => {
     setSearchTerm(productName);
     navigateWithParams(category, productName);
   };
+
+  useEffect(() => {
+    // Only care about /products (or anything that uses these params)
+    const params = new URLSearchParams(location.search);
+
+    const urlCategory = params.get("category") || "All";
+    const urlSearch = params.get("search") || "";
+
+    setCategory(urlCategory);
+    setSearchTerm(urlSearch);
+
+    // optional: clear suggestions on navigation
+    setSuggestions([]);
+  }, [location.pathname, location.search]);
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4 sticky-top">
