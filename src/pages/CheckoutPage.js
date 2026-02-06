@@ -4,9 +4,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "../components/CheckoutForm";
 
-const stripePromise = loadStripe(
-  "pk_test_51RKJTdQgb9TzKAET22xNywoR6XtKGZ4reXBIYLl8qiKMAqEXdUCBRnKMk0iak6BFX9ay7BK8dF2WkjFKuQoWRlRB00iUfuhvN4"
-);
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
 const CheckoutPage = () => {
   const location = useLocation();

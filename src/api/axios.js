@@ -25,9 +25,12 @@
 
 import axios from "axios";
 import { redirectToLogin } from "./navigation";
+// Get API base URL from environment variable
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:8081/api";
 
 const instance = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 
@@ -54,7 +57,7 @@ instance.interceptors.response.use(
       redirectToLogin();
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default instance;

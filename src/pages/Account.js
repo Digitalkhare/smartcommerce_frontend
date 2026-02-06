@@ -5,6 +5,9 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
 const Account = () => {
+  // Add this constant before: export default function Account() or function Account()
+  const WS_BASE_URL =
+    process.env.REACT_APP_WS_BASE_URL || "http://localhost:8081";
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
@@ -35,7 +38,7 @@ const Account = () => {
   useEffect(() => {
     if (!userId) return;
 
-    const socket = new SockJS("http://localhost:8080/ws");
+    const socket = new SockJS(`${WS_BASE_URL}/ws`);
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
@@ -48,7 +51,7 @@ const Account = () => {
         client.subscribe(topic, (message) => {
           const updatedOrder = JSON.parse(message.body);
           setOrders((prev) =>
-            prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+            prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)),
           );
         });
       },

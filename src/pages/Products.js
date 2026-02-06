@@ -55,9 +55,6 @@ const Products = () => {
       {/* Header + Filter Button */}
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h3 className="m-0">Browse Products</h3>
-        <p className="text-muted">
-          category: {category} | isFashion: {String(isFashion)}
-        </p>
 
         {isFashion && (
           <button

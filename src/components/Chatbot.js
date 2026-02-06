@@ -68,7 +68,7 @@ const Chatbot = () => {
         speakWithNativeVoice(text);
       }
     },
-    [ttsMode]
+    [ttsMode],
   );
 
   const handleSend = useCallback(
@@ -90,7 +90,7 @@ const Chatbot = () => {
         setIsBotTyping(false);
       }
     },
-    [input, speak]
+    [input, speak],
   );
 
   useEffect(() => {
@@ -154,7 +154,7 @@ const Chatbot = () => {
       const res = await axios.post(
         "/tts",
         { text },
-        { responseType: "arraybuffer" }
+        { responseType: "arraybuffer" },
       );
       const blob = new Blob([res.data], { type: "audio/mpeg" });
       const blobUrl = URL.createObjectURL(blob);

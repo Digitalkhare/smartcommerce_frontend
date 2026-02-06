@@ -3,6 +3,9 @@ import axios from "../api/axios";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
+// Get WebSocket base URL from environment variable
+const WS_BASE_URL =
+  process.env.REACT_APP_WS_BASE_URL || "http://localhost:8081";
 const TtsContext = createContext();
 
 export const useTts = () => useContext(TtsContext);
@@ -25,7 +28,7 @@ export const TtsProvider = ({ children }) => {
   // Setup WebSocket for real-time updates
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      webSocketFactory: () => new SockJS(`${WS_BASE_URL}/ws`),
       reconnectDelay: 5000,
       // reconnectDelay: 0,
 
