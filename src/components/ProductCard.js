@@ -3,6 +3,7 @@ import axios from "../api/axios";
 import { escapeAmpInTextParam } from "../util/escapeAmpInTextParam";
 import { Link } from "react-router-dom";
 import { useCart } from "../cart/CartContext";
+import "./ProductCard.css";
 
 const ProductCard = ({ product }) => {
   const { refreshCart } = useCart();
@@ -20,7 +21,7 @@ const ProductCard = ({ product }) => {
       <Link to={`/products/${product.id}`}>
         <img
           src={escapeAmpInTextParam(product.imageUrl)}
-          className="card-img-top"
+          className="card-img-top product-card-img"
           alt={product.name}
         />
       </Link>
