@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import "./ProductCard.css";
 
 const categories = [
   "Fashion",
@@ -18,13 +19,13 @@ const CategoryGrid = () => {
   };
 
   return (
-    <div className="container text-center py-4">
-      <h4>Shop by Category</h4>
-      <div className="d-flex flex-wrap justify-content-center mt-3 gap-3">
+    <div className="container text-center py-5 category-grid">
+      <h4 className="category-title">Shop by Category</h4>
+      <div className="category-buttons">
         {categories.map((cat) => (
           <button
             key={cat}
-            className="btn btn-outline-secondary"
+            className="category-btn"
             onClick={() => goToCategory(cat)}
             type="button"
           >
