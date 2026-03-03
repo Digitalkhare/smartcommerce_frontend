@@ -19,11 +19,17 @@ const ProductCard = ({ product }) => {
   return (
     <div className="card mb-3">
       <Link to={`/products/${product.id}`}>
-        <img
-          src={escapeAmpInTextParam(product.imageUrl)}
-          className="card-img-top product-card-img"
-          alt={product.name}
-        />
+        <div
+          className="media media--hybrid"
+          style={{ "--bg": `url("${escapeAmpInTextParam(product.imageUrl)}")` }}
+        >
+          <img
+            src={escapeAmpInTextParam(product.imageUrl)}
+            alt={product.name}
+            className="media__img"
+            loading="lazy"
+          />
+        </div>
       </Link>
       {/* {console.log("Fixed Image URL:", escapeAmpInTextParam(product.imageUrl))} */}
       <div className="card-body">
@@ -36,18 +42,22 @@ const ProductCard = ({ product }) => {
           </Link>
         </h5>
         <p>£{product.price.toFixed(2)}</p>
-        <Link
-          to={`/products/${product.id}`}
-          className="btn btn-sm btn-outline-primary"
-        >
-          View Details
-        </Link>
-        <button
-          className="btn btn-sm btn-outline-primary"
-          onClick={handleAddToCart}
-        >
-          Add to Cart
-        </button>
+        <div className="pc-actions">
+          <Link
+            to={`/products/${product.id}`}
+            className="btn btn-sm btn-outline-primary"
+          >
+            View
+          </Link>
+
+          <button
+            className="btn btn-sm btn-primary"
+            onClick={handleAddToCart}
+            type="button"
+          >
+            Add
+          </button>
+        </div>
       </div>
     </div>
   );

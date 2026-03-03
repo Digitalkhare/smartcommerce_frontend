@@ -34,7 +34,7 @@ const Products = () => {
       } catch (err) {
         console.error(
           "🔥 Product fetch failed:",
-          err.response?.data || err.message
+          err.response?.data || err.message,
         );
       }
     };
@@ -44,7 +44,7 @@ const Products = () => {
 
   const handleSubcategoryChange = (sub) => {
     setSelectedSubcategories((prev) =>
-      prev.includes(sub) ? prev.filter((s) => s !== sub) : [...prev, sub]
+      prev.includes(sub) ? prev.filter((s) => s !== sub) : [...prev, sub],
     );
   };
 
@@ -128,7 +128,10 @@ const Products = () => {
       ) : (
         <div className="row">
           {products.map((product) => (
-            <div key={product.id} className="col-12 col-sm-6 col-lg-4 mb-3">
+            <div
+              key={product.id}
+              className="col-6 col-md-4 col-lg-3 col-xl-2 mb-3"
+            >
               <ProductCard product={product} />
             </div>
           ))}

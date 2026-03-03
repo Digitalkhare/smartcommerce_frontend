@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "../api/axios";
 import ProductCard from "./ProductCard";
 import Slider from "react-slick";
+import "./ProductCard.css";
 
 const FeaturedProducts = () => {
   const [featured, setFeatured] = useState([]);
@@ -14,7 +15,7 @@ const FeaturedProducts = () => {
     dots: true,
     infinite: true,
     speed: 800,
-    slidesToShow: 3,
+    slidesToShow: 5,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
@@ -37,14 +38,19 @@ const FeaturedProducts = () => {
 
   return (
     <div className="container py-5">
-      <h4 className="text-center mb-4">Featured Deals</h4>
-      <Slider {...settings}>
-        {featured.map((product) => (
-          <div key={product.id} className="px-3">
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </Slider>
+      <h4 className="text-center featured-title">Featured Deals</h4>
+      <div className="featured-products-slider">
+        <Slider {...settings}>
+          {featured.map((product) => (
+            <div
+              key={product.id}
+              className="px-2 d-flex justify-content-center"
+            >
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </Slider>
+      </div>
     </div>
   );
 };
