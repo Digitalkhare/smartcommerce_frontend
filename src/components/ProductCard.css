@@ -92,3 +92,36 @@
 .featured-title {
   margin-bottom: 32px; /* increase distance */
 }
+/* =========================
+   ProductDetail ONLY
+   ========================= */
+
+.product-detail-page .product-detail-image {
+  width: 100%;
+  max-height: 420px; /* tune 320-480 */
+  object-fit: contain;
+  background: #f6f7f8;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Shrink related product cards ONLY on ProductDetail page */
+.product-detail-page .related-products-grid .card {
+  max-width: 260px; /* tune: 240-300 */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Optional: reduce the media block height inside related cards */
+.product-detail-page .related-products-grid .media--hybrid {
+  aspect-ratio: 4 / 5; /* less “square-big”; try 1/1 if you prefer */
+}
+
+/* Optional: slightly smaller text */
+.product-detail-page .related-products-grid .card-title {
+  font-size: 0.95rem;
+}
+.product-detail-page .related-products-grid .card-text,
+.product-detail-page .related-products-grid .pc-actions .btn {
+  font-size: 0.9rem;
+}

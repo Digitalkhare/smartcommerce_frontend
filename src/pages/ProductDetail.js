@@ -4,6 +4,7 @@ import axios from "../api/axios";
 import ProductCard from "../components/ProductCard";
 import { useAuth } from "../auth/AuthContext";
 import { useCart } from "../cart/CartContext";
+import "../components/ProductCard.css";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -35,7 +36,7 @@ const ProductDetail = () => {
           email: r.email,
           name: `${r.firstName} ${r.lastName}`,
           comment: r.comment,
-        }))
+        })),
       );
 
       setUserReview(mine || null);
@@ -53,7 +54,7 @@ const ProductDetail = () => {
     } catch (err) {
       console.error(
         "❌ Recommendation error:",
-        err.response?.data || err.message
+        err.response?.data || err.message,
       );
       try {
         const fallback = await axios.get("/products/featured");
@@ -62,7 +63,7 @@ const ProductDetail = () => {
       } catch (fallbackErr) {
         console.error(
           "❌ Failed to load even featured products!",
-          fallbackErr.message
+          fallbackErr.message,
         );
         setRelated([]);
       }
@@ -94,7 +95,7 @@ const ProductDetail = () => {
       console.error("Review error:", err);
       console.error("Server response:", err.response?.data);
       alert(
-        "❌ Review failed: " + (err.response?.data?.message || "Bad Request")
+        "❌ Review failed: " + (err.response?.data?.message || "Bad Request"),
       );
     }
   };
@@ -102,13 +103,13 @@ const ProductDetail = () => {
   if (!product) return <div className="container mt-5">Loading...</div>;
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4 product-detail-page">
       <div className="row mb-4">
         <div className="col-md-6">
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="img-fluid"
+            className="img-fluid product-detail-image"
           />
         </div>
         <div className="col-md-6">
@@ -166,13 +167,15 @@ const ProductDetail = () => {
 
       <hr />
 
-      <h4>{recTitle}</h4>
+      <h4 className="featured-title">{recTitle}</h4>
       <div className="row">
-        {related.map((p) => (
-          <div key={p.id} className="col-md-4">
-            <ProductCard product={p} />
-          </div>
-        ))}
+        <div className="row related-products-grid">
+          {related.map((p) => (
+            <div key={p.id} className="col-md-4">
+              <ProductCard product={p} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
